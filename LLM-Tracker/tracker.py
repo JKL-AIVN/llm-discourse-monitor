@@ -5,7 +5,7 @@ import yt_dlp
 from youtube_transcript_api import YouTubeTranscriptApi
 from openai import OpenAI
 
-# 定義頻道連結
+# 定義目標頻道
 CHANNELS = {
     "Matthew Berman": "https://www.youtube.com/@matthew_berman/videos", 
     "AI Explained": "https://www.youtube.com/@AIExplained/videos"
@@ -48,7 +48,7 @@ def get_recent_videos(channel_url, limit=5):
     return videos
 
 def get_transcript(video_id):
-    print(f"2. Extracting subtitles for video ID: {video_id}...")
+    print(f"2. Extracting subtitles for: {video_id}...")
     try:
         api = YouTubeTranscriptApi()
         transcript_list = api.fetch(video_id)
@@ -57,7 +57,7 @@ def get_transcript(video_id):
         return None
 
 def analyze_with_ai(channel_name, title, transcript):
-    """使用 OpenAI SDK 進行自動化語意分析"""
+    """核心分析邏輯：使用 OpenAI SDK 與 ChatAnywhere 接口"""
     print(f"3. Handing data over to ChatAnywhere (gpt-5.4-mini)...")
     api_key = os.getenv("CHATANYWHERE_API_KEY")
     if not api_key:
@@ -65,7 +65,23 @@ def analyze_with_ai(channel_name, title, transcript):
         return None
 
     client = OpenAI(api_key=api_key, base_url="https://api.chatanywhere.org/v1")
-    prompt = f"Analyze this YouTube transcript as a Digital Ethnographer.\nChannel: {channel_name} | Title: {title}\nOutput strictly in JSON.\nTranscript: {transcript[:25000]}"
+    
+    prompt = f"""
+    Analyze this YouTube transcript as a Digital Ethnographer.
+    Channel: {channel_name} | Title: {title}
+    Output strictly in JSON. Hierarchy:
+    {{
+        "metadata": {{"sentiment": "Positive/Neutral/Negative", "technical_complexity": "Beginner/Advanced"}},
+        "analysis": {{
+            "speaker_stance": "...", 
+            "key_technologies": ["..."], 
+            "ideological_cluster": "...", 
+            "relational_mapping": {{"allies": [], "competitors": [], "critiques": ""}}
+        }},
+        "risk_assessment": {{"copyright_risk": "Low/Medium/High", "reasoning": "..."}}
+    }}
+    Transcript (Snippet): {transcript[:25000]}
+    """
 
     try:
         response = client.chat.completions.create(
@@ -79,7 +95,8 @@ def analyze_with_ai(channel_name, title, transcript):
         return None
 
 def process_pipeline():
-    processed_ids = load_processed_ids()
+    """主執行管線"""
+    processed_ids = load_processed_ids(DB_PATH)
     print(f"🔍 System startup: Found {len(processed_ids)} processed videos.")
 
     for channel_name, url in CHANNELS.items():
@@ -87,14 +104,16 @@ def process_pipeline():
         processed_for_channel = False
         
         for video_id, title in recent_videos:
-            if processed_for_channel or video_id in processed_ids: continue
+            if processed_for_channel: break
+            if video_id in processed_ids: continue
             
-            # 關鍵字過濾保護 Token
+            # 關鍵字過濾
             tech_keywords = ["ai", "llm", "gpt", "model", "llama", "claude", "agent", "intelligence"]
             if not any(kw in title.lower() for kw in tech_keywords):
+                print(f"🚫 Filtering non-AI content: '{title}'")
                 continue
                 
-            print(f"-> Target locked on RELEVANT Video: {title}")
+            print(f"-> Target locked: {title}")
             transcript = get_transcript(video_id)
             if not transcript: continue
                 
@@ -109,8 +128,8 @@ def process_pipeline():
                             f.write(json.dumps(data, ensure_ascii=False) + "\n")
                         print("✅ Data verified and appended.")
                         processed_for_channel = True 
-                    except: print("⚠️ JSON validation failed.")
-    print("Pipeline Execution Complete.")
+                    except json.JSONDecodeError: print("⚠️ JSON validation failed.")
+    print("Done.")
 
 if __name__ == "__main__":
     process_pipeline()
