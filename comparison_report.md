@@ -1,4 +1,3 @@
-I will read the content of the specified text file and then generate a detailed comparison report in Markdown format.
 # Comparison Report: Matthew Berman vs. AI Explained
 
 This report analyzes the discourse styles, technical depth, and ideological positioning of two prominent AI content creators, **Matthew Berman** and **AI Explained**, based on internal analysis records.
