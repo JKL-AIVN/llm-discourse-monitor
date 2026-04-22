@@ -1,30 +1,17 @@
-# tracker.py 頂部加入
 import os
-
-# 自動獲取腳本所在的資料夾路徑
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "discourse_data.jsonl")
-
-def load_processed_ids(filepath=DB_PATH): # 改用 DB_PATH
-    # ... 原有邏輯 ...
-
-def process_pipeline():
-    # 將原本的 db_path = "discourse_data.jsonl" 改為：
-    db_path = DB_PATH 
-    # ... 其餘邏輯不變 ...
 import json
 import re
 import yt_dlp
 from youtube_transcript_api import YouTubeTranscriptApi
 from openai import OpenAI
 
-# Target Channels
+# 定義頻道連結
 CHANNELS = {
     "Matthew Berman": "https://www.youtube.com/@matthew_berman/videos", 
     "AI Explained": "https://www.youtube.com/@AIExplained/videos"
 }
 
-# Resolve file paths relative to script location
+# 修正路徑邏輯：確保在 GitHub Actions 環境中能正確存取檔案
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "discourse_data.jsonl")
 
@@ -47,7 +34,7 @@ def load_processed_ids(filepath=DB_PATH):
     return processed
 
 def get_recent_videos(channel_url, limit=5):
-    print(f"\n1. Fetching from {channel_url}...")
+    print(f"\n1. Fetching recent videos from {channel_url}...")
     ydl_opts = {'extract_flat': True, 'playlist_items': f'1-{limit}', 'quiet': True, 'no_warnings': True}
     videos = []
     try:
@@ -61,7 +48,7 @@ def get_recent_videos(channel_url, limit=5):
     return videos
 
 def get_transcript(video_id):
-    print(f"2. Extracting subtitles: {video_id}...")
+    print(f"2. Extracting subtitles for video ID: {video_id}...")
     try:
         api = YouTubeTranscriptApi()
         transcript_list = api.fetch(video_id)
@@ -70,24 +57,16 @@ def get_transcript(video_id):
         return None
 
 def analyze_with_ai(channel_name, title, transcript):
-    print(f"3. AI Analysis (gpt-5.4-mini)...")
+    """使用 OpenAI SDK 進行自動化語意分析"""
+    print(f"3. Handing data over to ChatAnywhere (gpt-5.4-mini)...")
     api_key = os.getenv("CHATANYWHERE_API_KEY")
     if not api_key:
-        print("❌ Error: CHATANYWHERE_API_KEY missing.")
+        print("❌ Error: CHATANYWHERE_API_KEY not found.")
         return None
 
     client = OpenAI(api_key=api_key, base_url="https://api.chatanywhere.org/v1")
-    prompt = f"""
-    Analyze this YouTube transcript as a Digital Ethnographer.
-    Channel: {channel_name} | Title: {title}
-    Output strictly in JSON. Hierarchy:
-    {{
-        "metadata": {{"sentiment": "Positive/Neutral/Negative", "technical_complexity": "Beginner/Advanced"}},
-        "analysis": {{"speaker_stance": "...", "key_technologies": ["..."], "ideological_cluster": "...", "relational_mapping": {{"allies": [], "competitors": [], "critiques": ""}}}},
-        "risk_assessment": {{"copyright_risk": "Low/Medium/High", "reasoning": "..."}}
-    }}
-    Transcript (Snippet): {transcript[:25000]}
-    """
+    prompt = f"Analyze this YouTube transcript as a Digital Ethnographer.\nChannel: {channel_name} | Title: {title}\nOutput strictly in JSON.\nTranscript: {transcript[:25000]}"
+
     try:
         response = client.chat.completions.create(
             model="gpt-5.4-mini",
@@ -104,17 +83,18 @@ def process_pipeline():
     print(f"🔍 System startup: Found {len(processed_ids)} processed videos.")
 
     for channel_name, url in CHANNELS.items():
-        recent_videos = get_recent_videos(url)
+        recent_videos = get_recent_videos(url, limit=5)
         processed_for_channel = False
         
         for video_id, title in recent_videos:
             if processed_for_channel or video_id in processed_ids: continue
             
-            # Keywords filter for token protection
-            if not any(kw in title.lower() for kw in ["ai", "llm", "gpt", "model", "llama", "agent"]):
+            # 關鍵字過濾保護 Token
+            tech_keywords = ["ai", "llm", "gpt", "model", "llama", "claude", "agent", "intelligence"]
+            if not any(kw in title.lower() for kw in tech_keywords):
                 continue
                 
-            print(f"-> Processing NEW Video: {title}")
+            print(f"-> Target locked on RELEVANT Video: {title}")
             transcript = get_transcript(video_id)
             if not transcript: continue
                 
