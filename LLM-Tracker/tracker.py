@@ -1,4 +1,17 @@
+# tracker.py 頂部加入
 import os
+
+# 自動獲取腳本所在的資料夾路徑
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "discourse_data.jsonl")
+
+def load_processed_ids(filepath=DB_PATH): # 改用 DB_PATH
+    # ... 原有邏輯 ...
+
+def process_pipeline():
+    # 將原本的 db_path = "discourse_data.jsonl" 改為：
+    db_path = DB_PATH 
+    # ... 其餘邏輯不變 ...
 import json
 import re
 import yt_dlp
