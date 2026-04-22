@@ -1,6 +1,6 @@
 # LLM Discourse Landscape: Automated Semantic Analysis & IP Risk Pipeline
 
-**Author:** Tsz Chun Liu (qwerty) | Cultural Studies, CUHK
+**Author:** Tsz Chun Liu (Jack) | Cultural Studies, CUHK
 **Methodology:** Research through Design (RtD) & Digital Ethnography
 
 ---
