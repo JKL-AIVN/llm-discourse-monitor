@@ -1,63 +1,54 @@
-# LLM Discourse Landscape: Automated Semantic Analysis & IP Risk Pipeline
 
-**Author:** Tsz Chun Liu (qwerty) | Cultural Studies, CUHK
-**Methodology:** Research through Design (RtD) & Digital Ethnography
 
----
+***
 
-## 📌 Project Overview
-This project serves as a socio-technical laboratory to analyze the evolving public discourse surrounding Large Language Models (LLMs) and Generative AI. By deploying an automated data pipeline, this system continuously extracts, semantically analyzes, and visualizes the ideological stances and Intellectual Property (IP) risks embedded in prominent tech commentary channels on YouTube.
+# Project Report: LLM Discourse Landscape Tracker
 
-The resulting dashboard provides a real-time, ethnographic mapping of the tension between **"Accelerationist Builders"** and **"Safety-focused Observers"** in the contemporary AI landscape.
-
-🔗 **[Live Dashboard (GitHub Pages)](https://jkl-aivn.github.io/llm-discourse-monitor/)** 
+**Author:** Tsz Chun Liu (qwerty) | Cultural Studies, CUHK  
+**Status:** Phase 1 Prototype (Hybrid-Edge Implementation)  
+**Methodology:** Research through Design (RtD) & Digital Ethnography  
 
 ---
 
-## 🏗️ Deployment Architecture: The Hybrid-Edge Model
+## 1. Problem Statement
+The Large Language Model (LLM) ecosystem evolves at a pace that outstrips manual monitoring. Existing trackers often rely on metadata such as titles and thumbnails, which fail to capture the nuanced ideological stances and technical critiques shared by creators within actual video content. 
 
-Initial deployment attempts utilized a fully cloud-native CI/CD approach via GitHub Actions. However, due to YouTube's aggressive anti-bot infrastructure, requests from cloud Data Center IPs (like Azure/GitHub runners) were consistently blocked (returning `403 Forbidden` or CAPTCHA challenges). 
+Furthermore, automated cloud-based collection (e.g., GitHub Actions) faces significant infrastructure barriers, as platforms like YouTube aggressively block Data Center IPs. There is a critical need for a resilient monitoring system that can bypass these restrictions to provide deep semantic insights into the "builder" vs. "observer" divide in AI discourse.
 
-To ensure 100% data integrity and bypass cloud-level fingerprinting, the architecture was pivoted to a highly resilient **Hybrid-Edge Collection** model:
+## 2. Methodology
+To ensure high data integrity and engineering reliability, this project utilizes a **Hybrid-Edge Collection** architecture:
 
-1. **Edge Node Collection (Local Environment):** A Python-based extraction script (`tracker.py`) runs on a high-performance local edge node. It utilizes `yt-dlp` and `youtube-transcript-api` (with fallback mechanisms) to scrape raw transcripts, bypassing data-center IP bans.
-2. **Semantic Processing Engine:** Raw transcripts are piped via standard input into the local **Gemini CLI**. Using highly structured prompt engineering, the LLM acts as a "Digital Ethnographer," parsing 15,000+ character transcripts into strictly formatted JSON, identifying speaker stances, ideological clusters, and copyright risk profiles.
-3. **Cloud Presentation Layer:** The parsed, materialized view (`data.json`) is pushed to the repository. The frontend—built with vanilla JavaScript and styled with Tailwind CSS—is statically hosted on GitHub Pages, ensuring a lightweight, decoupled, and highly responsive user interface.
+* **Data Extraction (Edge Node):** A Python-based engine (`tracker.py`) executes on a local edge node to bypass cloud-native IP bans. It utilizes `yt-dlp` and `youtube-transcript-api` to scrape raw transcripts directly from creators' outputs.
+* **Semantic Analysis Engine:** Transcripts are piped into the **Gemini CLI**. Using structured prompt engineering, the LLM acts as a "Digital Ethnographer" to parse long-form text (15,000+ characters) into structured JSON, identifying speaker stances and ideological clusters.
+* **Presentation Layer:** The system exports a materialized view (`data.json`) to a public **GitHub Pages** dashboard. The frontend uses vanilla JavaScript and Tailwind CSS to dynamically render findings in a browser-accessible format.
 
----
+## 3. Evaluation Dataset
+The evaluation dataset consists of a dynamic registry of 14+ analyzed video records from two primary channels representing opposite ends of the LLM discourse spectrum:
 
-## 🔬 Key Ethnographic Findings (Case Study)
+* **Matthew Berman:** Focuses on "Capability" and "Developer Utility." Key technologies analyzed include GPT Image 2, Claude 4.7, and the OpenClaw ban.
+* **AI Explained:** Focuses on "Systemic Impact" and "AI Safety." Key technologies analyzed include Zoom AI Companion, AI Agents, and the societal implications of AGI.
 
-Based on the automated comparative analysis of our two primary monitored subjects, distinct ideological clusters have emerged:
+## 4. Evaluation Methods
+The system's performance is evaluated through a qualitative and ethical framework:
+* **Semantic Integrity Check:** Manual verification of the `speaker_stance` and `core_thesis` against original transcripts to ensure the LLM accurately captures the creator’s intent.
+* **Automated IP Risk Matrix:** A custom-built risk assessment logic that categorizes content into **High**, **Medium**, or **Low** risk based on the legal and ethical implications of the technologies discussed (e.g., generative visual models vs. administrative automation).
+* **Prototype Limitations:** As a first-phase prototype, the system currently prioritizes semantic depth over automated benchmarking. Future iterations will include "LLM-as-a-Judge" scoring to quantify hallucination rates during summarization.
 
-### 1. Matthew Berman: The "Developer Accelerationist"
-* **Focus:** Infrastructure bottlenecks, hardware limitations (GPU crunches), and open-source vs. proprietary model performance.
-* **Tone:** Technically enthusiastic ("Performance Hype").
-* **Ideology:** Strongly advocates for developer autonomy and "Zero Switching Cost," frequently critiquing corporate gatekeeping and restrictive Terms of Service (e.g., Anthropic's platform bans).
+## 5. Experimental Results
+The automated pipeline successfully mapped a clear ideological divide between the monitored subjects:
 
-### 2. AI Explained: The "Socio-Technical Skeptic"
-* **Focus:** Existential risks, user-experience friction, and the geopolitical implications of hyper-centralized tech monopolies.
-* **Tone:** Analytically skeptical ("Transformational Hype").
-* **Ideology:** Aligns with AI Safety and Longtermism. Focuses on the societal implications of "magical powers" and the urgent need for institutional oversight, warning against the loss of human agency.
-
----
-
-## 🛡️ IP Risk Assessment Matrix
-The pipeline utilizes the LLM to assign automated IP Risk levels based on the specific technologies discussed:
-* **🔴 HIGH RISK:** Generative visual models (e.g., Midjourney, GPT Image 2). High likelihood of outputting styles or likenesses derived from non-consensual web scraping.
-* **🟠 MEDIUM RISK:** Third-party API harnessing and ToS workarounds. Legal gray areas regarding Model-as-a-Service (MaaS) extraction.
-* **🟢 LOW RISK:** Administrative automation, meeting summarization, and philosophical/systemic discussions that fall clearly under fair use.
+* **The Accelerationist Builder (Berman):** Discourse focuses on raw performance (ELO scores), infrastructure (GPU crunches), and a rejection of corporate "safety" narratives that limit developer autonomy.
+* **The Safety-Focused Observer (AI Explained):** Discourse positions AI as an existential risk comparable to nuclear weapons, emphasizing the need for democratization and urgent government regulation.
+* **Infrastructure Validation:** The Hybrid-Edge model successfully maintained a consistent data flow despite YouTube’s 403 Forbidden blocks on cloud runners, proving the viability of edge-based collection for sensitive scraping tasks.
 
 ---
 
-## 🛠️ Tech Stack
-* **Data Extraction:** `yt-dlp`, `youtube-transcript-api`
-* **Analysis Engine:** Google `Gemini CLI` (Native Windows Subprocess Piping)
-* **Frontend:** HTML5, modern JavaScript (ES6+), **Tailwind CSS**
+### 🛠️ Tech Stack
+* **Backend:** Python 3.10+, `yt-dlp`, `youtube-transcript-api`
+* **AI Engine:** Google Gemini CLI (Native Windows Subprocess Piping)
+* **Frontend:** HTML5, JavaScript (ES6), **Tailwind CSS**
 * **Deployment:** Git, GitHub Pages
 
 ---
 
-## 🚀 Known Limitations & Future Work
-* **Proxy Integration:** To transition the Edge Node back to a fully automated cloud CI/CD pipeline, future iterations will implement a rotating Residential Proxy network to natively bypass YouTube's rate-limiting on automated cloud runners.
-* **Semantic Chunking:** Current transcript ingestion is capped to preserve context windows. Future updates will introduce recursive text-chunking algorithms to process hour-long podcast transcripts without data loss.
+🔗 **[View Live Dashboard](https://jkl-aivn.github.io/llm-discourse-monitor/)**
