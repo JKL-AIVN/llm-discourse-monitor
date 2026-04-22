@@ -2,28 +2,55 @@ name: LLM Tracker Auto Update
 
 on:
   schedule:
-    - cron: '0 */12 * * *' # 每 12 小時跑一次
-  workflow_dispatch: # 允許手動執行
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+# 修正 Node.js 24 警告的全局設定
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # 確保 Action 有權限寫入內容回 Repo
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
       - name: Run tracker
         env:
+          # 確保這裏對應的是 GitHub Secrets 中的名稱
           CHATANYWHERE_API_KEY: ${{ secrets.CHATANYWHERE_API_KEY }}
-        run: python tracker.py
+        run: |
+          # 執行前檢查變數是否存在
+          if [ -z "$CHATANYWHERE_API_KEY" ]; then
+            echo "❌ Error: CHATANYWHERE_API_KEY is not set in Secrets."
+            exit 1
+          fi
+          python tracker.py
+
       - name: Commit data
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # 防止因為沒有新數據更新而導致 commit 失敗 (exit code 1)
           git add discourse_data.jsonl
-          git commit -m "Update discourse data" || echo "No changes"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update discourse data [skip ci]"
+            git push
+          fi
