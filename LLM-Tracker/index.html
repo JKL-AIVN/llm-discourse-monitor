@@ -33,49 +33,49 @@ body class=bg-slate-50 p-6 mdp-12
         footer
     div
 
-    script
-        async function loadData() {
-            try {
-                 讀取你的數據檔案
-                const response = await fetch('discourse_data.jsonl');
-                const text = await response.text();
-                const lines = text.trim().split('n');
-                const container = document.getElementById('data-table');
+    <script>
+    async function loadData() {
+        try {
+            // 讀取你的數據檔案
+            const response = await fetch('discourse_data.jsonl');
+            const text = await response.text();
+            const lines = text.trim().split('\n');
+            const container = document.getElementById('data-table');
 
-                lines.reverse().forEach(line = {  最新的影片排在最上面
-                    if (!line) return;
-                    const entry = JSON.parse(line);
-                    
-                     根據風險等級決定顏色
-                    let riskClass = bg-green-100 text-green-700;
-                    if(entry.copyright_risk_level.toLowerCase().includes(high)) riskClass = bg-red-100 text-red-700;
-                    if(entry.copyright_risk_level.toLowerCase().includes(medium)) riskClass = bg-orange-100 text-orange-700;
+            lines.reverse().forEach(line => {  // 最新的影片排在最上面
+                if (!line) return;
+                const entry = JSON.parse(line);
 
-                    const row = document.createElement('tr');
-                    row.className = hoverbg-slate-50 transition-colors;
-                    row.innerHTML = `
-                        td class=py-5 px-6
-                            div class=font-bold text-slate-900${entry.channel_name}div
-                            div class=text-xs text-blue-500 mt-1
-                                a href=httpsyoutube.comwatchv=${entry.video_id} target=_blankView Video →a
-                            div
-                            div class=text-sm text-slate-500 mt-1 italic${entry.video_title}div
-                        td
-                        td class=py-5 px-6 text-sm text-slate-700${entry.analysis.speaker_stance  entry.speaker_stance}td
-                        td class=py-5 px-6 text-sm text-slate-600${entry.analysis.core_argument  entry.core_argument}td
-                        td class=py-5 px-6 text-center
-                            span class=px-3 py-1 rounded-full text-xs font-bold uppercase ${riskClass}
-                                ${entry.copyright_risk_level}
-                            span
-                        td
-                    `;
-                    container.appendChild(row);
-                });
-            } catch (err) {
-                console.error(Error loading JSONL, err);
-            }
+                // 根據風險等級決定顏色
+                let riskClass = "bg-green-100 text-green-700";
+                if (entry.copyright_risk_level.toLowerCase().includes("high")) riskClass = "bg-red-100 text-red-700";
+                if (entry.copyright_risk_level.toLowerCase().includes("medium")) riskClass = "bg-orange-100 text-orange-700";
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition-colors";
+                row.innerHTML = `
+                    <td class="py-5 px-6">
+                        <div class="font-bold text-slate-900">${entry.channel_name}</div>
+                        <div class="text-xs text-blue-500 mt-1">
+                            <a href="https://youtube.com/watch?v=${entry.video_id}" target="_blank">View Video →</a>
+                        </div>
+                        <div class="text-sm text-slate-500 mt-1 italic">${entry.video_title}</div>
+                    </td>
+                    <td class="py-5 px-6 text-sm text-slate-700">${(entry.analysis.speaker_stance || entry.speaker_stance) ?? ""}</td>
+                    <td class="py-5 px-6 text-sm text-slate-600">${(entry.analysis.core_argument || entry.core_argument) ?? ""}</td>
+                    <td class="py-5 px-6 text-center">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase ${riskClass}">
+                            ${entry.copyright_risk_level}
+                        </span>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        } catch (err) {
+            console.error("Error loading JSONL", err);
         }
-        loadData();
-    script
+    }
+    loadData();
+</script>
 body
 html
